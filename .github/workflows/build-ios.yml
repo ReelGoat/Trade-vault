@@ -1,0 +1,47 @@
+name: Build Unsigned iOS IPA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies & build web assets
+        run: |
+          npm install
+          npm run build
+          npx cap sync ios
+
+      - name: Build unsigned Xcode archive
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/App.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            archive
+
+      - name: Package into unsigned IPA
+        run: |
+          mkdir -p build/ipa/Payload
+          cp -r build/App.xcarchive/Products/Applications/*.app build/ipa/Payload/
+          cd build/ipa
+          zip -r App-unsigned.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: App-unsigned-ipa
+          path: build/ipa/App-unsigned.ipa
