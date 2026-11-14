@@ -1,7 +1,8 @@
+
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.tradevault.app',
+  appId: 'com.reelgoat.tradevault',
   appName: 'Trade Vault',
   webDir: '.output/public'
 };
