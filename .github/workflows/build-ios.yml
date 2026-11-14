@@ -9,41 +9,42 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js v22
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Web Assets
-        run: npm run build
+      - name: Install & Build Web App
+        run: |
+          npm install
+          npm run build
 
       - name: Sync Capacitor iOS
         run: npx cap sync ios
 
-      - name: Build unsigned Xcode archive
+      - name: Build Xcode Archive
         run: |
-          xcodebuild -workspace ios/App/App.xcworkspace \
+          xcodebuild -project ios/App/App.xcodeproj \
             -scheme App \
             -configuration Release \
             -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -archivePath build/App.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
             archive
 
-      - name: Package into unsigned IPA
+      - name: Package IPA
         run: |
           mkdir -p build/ipa/Payload
           cp -r build/App.xcarchive/Products/Applications/*.app build/ipa/Payload/
-          cd build/ipa
-          zip -r App-unsigned.ipa Payload
+          cd build/ipa && zip -r App-unsigned.ipa Payload
 
-      - name: Upload IPA Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: App-unsigned-ipa
