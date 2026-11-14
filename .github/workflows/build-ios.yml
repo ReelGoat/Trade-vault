@@ -17,15 +17,14 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies & build web assets
-        run: |
-          npm install
-          npm run build
+      - name: Install Dependencies
+        run: npm install
 
-      - name: Initialize Capacitor iOS
-        run: |
-          npx cap add ios || true
-          npx cap sync ios
+      - name: Build Web Assets
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
 
       - name: Build unsigned Xcode archive
         run: |
